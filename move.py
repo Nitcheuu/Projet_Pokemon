@@ -15,3 +15,14 @@ class Attaque:
         self.precision : int = self.data["accuracy"]
         # Classe : Physique , spéciale, status, etc.
         self.classe : str = self.data["damage_class"]["name"]
+        # Description de l'attaque en anglais
+        self.description_en : str = self.data["effect_entries"][0]["effect"]
+        # PP : Nombre de fois où le pokémon peut utiliser la capacité en 1 combat
+        self.pp = self.data["pp"]
+        # Priorité de l'attaque 0 1 ou 2
+        self.priorite = self.data["priority"]
+        # Cible de l'attaque (le joueur ou l'ennemi)
+        self.cible = self.data["target"]["name"]
+        # Type de l'attaque
+        self.type = self.data["type"]["name"]
+
