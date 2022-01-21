@@ -26,3 +26,10 @@ class Attaque:
         # Type de l'attaque
         self.type = self.data["type"]["name"]
 
+
+    def __str__(self):
+        return "Attaque{nom_en=" + self.nom_en + \
+                      ";id=" + str(self.id) + \
+                      ";precision=" + str(self.precision) + \
+                      ";pp=" + str(self.pp) + \
+                      "}"

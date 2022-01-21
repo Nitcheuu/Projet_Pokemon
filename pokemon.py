@@ -40,8 +40,6 @@ class Pokemon:
         ]
 
 
-
-
     def __str__(self):
         return "Pokemon{" + \
                "generation="+self.generation+";"+\
