@@ -3,6 +3,7 @@ from tkinter import ttk, Tk
 import json
 from functools import partial
 import os
+from team_card import TeamCard
 
 from PIL import ImageTk,Image
 
@@ -20,6 +21,10 @@ class Application:
     sprites : list[PhotoImage]
     dimension : int # Dimension de la matrice qui modélise le pc
     unlock_pokemons : list[list[list[str]]] # Modélise le pc
+    poke_cards_liste : list[TeamCard]   # Liste des pokémons débloqués
+    poke_cards_equipe : list[TeamCard]  # Liste des pokémons de l'équipe du joueur
+    poke_cards_liste_frame: list[Frame]  # Liste des pokémons débloqués
+    poke_cards_equipe_frame: list[Frame]  # Liste des pokémons de l'équipe du joueur
     """
     Zone constructeurs
     """
@@ -36,6 +41,10 @@ class Application:
         with open("data/save/save.json", "r") as save_data:
             self.save = json.load(save_data)
         self.sprites = []
+        self.poke_cards_liste = []
+        self.poke_cards_equipe = []
+        self.poke_cards_liste_frame = []
+        self.poke_cards_equipe_frame = []
         self.dimension_pc = (3, 3)
     """
     Zone des méthodes
@@ -176,7 +185,12 @@ class Application:
 
     def equipe(self, frm : Frame):
 
-
+        """
+        VA : Permet au joueur de gérer son équipe en affichant l'ensemble des éléments et des outils de la gestion
+             de l'équipe
+        :param frm: Frame princial de l'application
+        :return: None
+        """
         # Vider le frame principal
         frm_equipe_principal : Frame = self.vider_frame(frm)
 
@@ -192,40 +206,63 @@ class Application:
         frm_equipe.grid(column=1, row=0, padx=50)
 
         for i in range(len(self.save["player"]["unlock_pokemons"])):
-            # On ouvre et on stock les images dans un attribut de l'objet courant
-            # à cause du garbage collector
-            self.sprites.append(PhotoImage(file=f'data/pokemons/{self.save["player"]["unlock_pokemons"][i]}/front_default.png'))
-            # Création de la zone qui contiendra l'image
-            Label(frm_liste, image=self.sprites[i]
-                  ).grid(column=3, row=i)
+            """
+            Dans cette boucle, on défini les "cartes" des pokémons que le joueur a débloqué
+            """
+            frm_carte = Frame(frm_liste)
+            frm_carte.place(anchor=CENTER, rely=.5, relx=.5)
+            frm_carte.grid(column=0, row=i)
+            self.poke_cards_liste_frame.append(frm_carte)
+            # Chargement du sprite du pokémon
+            sprite : PhotoImage = PhotoImage(file=f'data/pokemons/{self.save["player"]["unlock_pokemons"][i]}/front_default.png')
+            # On instancie une nouvelle "carte" qu'on ajoute à la liste des cartes
+            self.poke_cards_liste.append(TeamCard(sprite, self.save["player"]["unlock_pokemons"][i], frm_carte, i, "Ajouter"))
+            # On appelle la méthode de la classe qui permet d'afficher la carte à l'écran pour chaque carte
+            self.poke_cards_liste[i].card()
 
-            ttk.Label(frm_liste, text=self.save["player"]["unlock_pokemons"][i].split("_")[0]
-                      ).grid(column=1, row=i)
-
-            ttk.Label(frm_liste, text=self.save["player"]["unlock_pokemons"][i].split("_")[1]
-                      ).grid(column=2, row=i)
-
-            ttk.Button(frm_liste, text="Ajouter", command=partial(print, str(i))
-                       ).grid(column=0, row=i)
+            self.poke_cards_liste[i].bouton.bind("<Button-1>", partial(print, i))
 
         for i in range(len(self.save["player"]["team"])):
             for dossier in dossiers:
-                for pokemon in self.save["player"]["team"]:
-                    if dossier == pokemon:
-                        # On ouvre et on stock les images dans un attribut de l'objet courant
-                        # à cause du garbage collector
-                        self.sprites.append(PhotoImage(file=f"data/pokemons/{dossier}/front_default.png"))
-                        # Création de la zone qui contiendra l'image
-                        Label(frm_equipe, image=self.sprites[-1]
-                              ).grid(column=3, row=i)
+                if dossier == self.save["player"]["team"][i]:
+                    frm_carte = Frame(frm_equipe)
+                    frm_carte.place(anchor=CENTER, rely=.5, relx=.5)
+                    frm_carte.grid(column=0, row=i)
+                    self.poke_cards_equipe_frame.append(frm_carte)
 
-                        ttk.Label(frm_equipe, text=dossier.split("_")[0]
-                                  ).grid(column=1, row=i)
+                    sprite : PhotoImage = PhotoImage(file=f"data/pokemons/{dossier}/front_default.png")
 
-                        ttk.Label(frm_equipe, text=dossier.split("_")[1]
-                                  ).grid(column=2, row=i)
+                    self.poke_cards_equipe.append(TeamCard(sprite, dossier, frm_equipe, i, "Retirer"))
 
-                        ttk.Button(frm_equipe, text="Retirer", command=partial(print, str(i))
-                                   ).grid(column=0, row=i)
+                    self.poke_cards_equipe[i].card()
 
-        ttk.Button(frm_equipe, text="Menu principal", command=lambda : self.client(frm)).grid(column=0, row=1)
+                    self.poke_cards_equipe[i].bouton.bind("<Button-1>", partial(self.swap, i, frm))
+                    """"# On ouvre et on stock les images dans un attribut de l'objet courant
+                    # à cause du garbage collector
+                    self.sprites.append(PhotoImage(file=f"data/pokemons/{dossier}/front_default.png"))
+                    # Création de la zone qui contiendra l'image
+                    Label(frm_equipe, image=self.sprites[-1]
+                          ).grid(column=3, row=i)
+
+                    ttk.Label(frm_equipe, text=dossier.split("_")[0]
+                              ).grid(column=1, row=i)
+
+                    ttk.Label(frm_equipe, text=dossier.split("_")[1]
+                              ).grid(column=2, row=i)
+
+                    ttk.Button(frm_equipe, text="Retirer", command=partial(print, str(i))
+                               ).grid(column=0, row=i)"""
+
+        ttk.Button(frm_equipe, text="Menu principal", command=lambda : self.client(frm)).grid(column=0, row=len(self.poke_cards_equipe))
+
+
+    def swap(self, index : int, frm : Frame, team2pc = True):
+        if team2pc:
+            self.save["player"]["unlock_pokemons"].append(f"{self.poke_cards_equipe[index].dossier.split('_')[0]}_{self.poke_cards_equipe[index].dossier.split('_')[1]}")
+            self.poke_cards_liste.append(self.poke_cards_equipe[index])
+            self.poke_cards_equipe[index].destroy()
+            self.poke_cards_equipe.pop(index)
+            self.poke_cards_equipe_frame[index].destroy()
+            self.save["player"]["team"].pop(index)
+            self.sauvegarder()
+            self.equipe(frm)

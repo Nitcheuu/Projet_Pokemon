@@ -6,17 +6,20 @@ import json
 from functools import partial
 import os
 
+
 class TeamCard:
 
-    sprites : PhotoImage
+    sprite : PhotoImage
     dossier : str
     frame : Frame
     index : int
     textButton : str
+    bouton : ttk.Button
 
 
-    def __init__(self, sprites : PhotoImage, dossier : str, frame : Frame, index : int, textButton : str):
-        self.sprites = sprites
+
+    def __init__(self, sprite : PhotoImage, dossier : str, frame : Frame, index : int, textButton : str):
+        self.sprite = sprite
         self.dossier = dossier
         self.frame = frame
         self.index = index
@@ -24,12 +27,18 @@ class TeamCard:
 
     
     def card(self):
-        self.sprites.append(PhotoImage(file=f"data/pokemons/{self.dossier}/front_default.png"))
 
-        Label(self.frame, image=self.sprites).grid(column=3, row=self.index)
+        Label(self.frame, image=self.sprite).grid(column=3, row=0)
 
-        ttk.Label(self.frame, text=self.dossier.split("_")[0]).grid(column=1, row=self.index)
+        ttk.Label(self.frame, text=self.dossier.split("_")[0]).grid(column=1, row=0)
 
-        ttk.Label(self.frame, text=self.dossier.split("_")[0]).grid(column=2, row=self.index)
+        ttk.Label(self.frame, text=self.dossier.split("_")[1]).grid(column=2, row=0)
 
-        ttk.Button(self.frame, text=self.textButton, command=partial(print, str(self.index))).grid(column=0, row=self.index)
+        self.bouton = ttk.Button(self.frame, text=self.textButton)
+
+        self.bouton.grid(column=0, row=0)
+
+
+    def destroy(self):
+        self.frame.destroy()
+
