@@ -69,7 +69,7 @@ def threaded_client(conn, currentPlayer, gameID):
 
 
 # Définition du serveur et du port
-server = "10.25.144.213"
+server = "192.168.1.35"
 port = 5555
 # Définition du socket
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
