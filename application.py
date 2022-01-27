@@ -1,3 +1,5 @@
+from cProfile import label
+from email.mime import image
 from tkinter import *
 from tkinter import ttk, Tk
 import json
@@ -20,6 +22,14 @@ class Application:
     sprites : list[PhotoImage]
     dimension : int # Dimension de la matrice qui modélise le pc
     unlock_pokemons : list[list[list[str]]] # Modélise le pc
+
+    dossiers : list[str]
+
+    imageCombat : PhotoImage
+    imageBoutique : PhotoImage
+    imageEquipe : PhotoImage
+    imageQuitter : PhotoImage
+
     """
     Zone constructeurs
     """
@@ -37,6 +47,15 @@ class Application:
             self.save = json.load(save_data)
         self.sprites = []
         self.dimension_pc = (3, 3)
+
+        
+        # Recuperation de la liste des dossiers des pokémons
+        self.dossiers = os.listdir("data/pokemons")
+
+        self.imageCombat = PhotoImage(file= "assets/menu/battle.png").subsample(3,3)
+        self.imageBoutique = PhotoImage(file= "assets/menu/boutique.png").subsample(4,4)
+        self.imageEquipe = PhotoImage(file= "assets/menu/equipe.png").subsample(4,4)
+        self.imageQuitter = PhotoImage(file= "assets/menu/quitter.png").subsample(4,4)
     """
     Zone des méthodes
     """
@@ -135,6 +154,14 @@ class Application:
 
     def informations_utilisateur(self, frm : Frame):
 
+        # affiche les pokemons dans l'équipe 
+        for i in range(len(self.save["player"]["team"])):
+            for dossier in self.dossiers:
+                for pokemon in self.save["player"]["team"]:
+                    if dossier == pokemon:
+                        Label(frm, image=PhotoImage(file=f"data/pokemons/{dossier}/front_default.png")).grid(column=0, row=i)
+
+
         # Pseudo du joueur
         ttk.Label(frm, text=self.save["player"]["name"], font=("Courrier", 10)
                   ).grid(column=0, row=0)
@@ -158,20 +185,20 @@ class Application:
         self.informations_utilisateur(frm)
 
         # Boutique
-        ttk.Button(frm, text="Boutique"
-                   ).grid(column=0, row=1)
-
-        # Ouverture de l'onglet équipe
-        ttk.Button(frm, text="Mon équipe", command=lambda : self.equipe(frm)
+        Button(frm, text="Boutique", image=self.imageBoutique, relief=FLAT,
                    ).grid(column=0, row=2)
 
+        # Ouverture de l'onglet équipe
+        Button(frm, text="Mon équipe", image=self.imageEquipe, relief=FLAT, command=lambda : self.equipe(frm)
+                   ).grid(column=2, row=2)
+
         # Lancement d'une partie
-        ttk.Button(frm, text="Lancer une partie"
-                   ).grid(column=1, row=2)
+        Button(frm, text="Lancer une partie", image=self.imageCombat, relief=FLAT,
+                   ).grid(column=1, row=1)
 
         # Quitter le jeu
-        ttk.Button(frm, text="Quitter le jeu", command=self.principal.destroy
-                   ).grid(column=0, row=3)
+        Button(frm, text="Quitter le jeu", image=self.imageQuitter, relief=FLAT, command=self.principal.destroy
+                   ).grid(column=1, row=2)
 
 
     def equipe(self, frm : Frame):
@@ -179,9 +206,6 @@ class Application:
 
         # Vider le frame principal
         frm_equipe_principal : Frame = self.vider_frame(frm)
-
-        # Recuperation de la liste des dossiers des pokémons
-        dossiers : list[str] = os.listdir("data/pokemons")
 
         # Frame de la liste des pokémons disponibles
         frm_liste : Frame = Frame(frm_equipe_principal, background='#%02x%02x%02x' % (64, 204, 208))
@@ -209,7 +233,7 @@ class Application:
                        ).grid(column=0, row=i)
 
         for i in range(len(self.save["player"]["team"])):
-            for dossier in dossiers:
+            for dossier in self.dossiers:
                 for pokemon in self.save["player"]["team"]:
                     if dossier == pokemon:
                         # On ouvre et on stock les images dans un attribut de l'objet courant
