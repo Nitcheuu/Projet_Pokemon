@@ -165,9 +165,15 @@ class Application:
 
     def informations_utilisateur(self, frm : Frame):
 
+
+        self.sprites = []
+
+        for pokemon in self.save["player"]["team"]:
+            self.sprites.append(PhotoImage(file=f"data/pokemons/{pokemon}/front_default.png"))
+
         # affiche les pokemons dans l'équipe 
-        for pokemon in self.poke_cards_equipe:
-            Label(frm, image=pokemon.sprite).grid(column=0, row=0)
+        for i in range(len(self.sprites)):
+            Label(frm, image=self.sprites[i]).grid(column=i, row=0)
 
 
         # Pseudo du joueur
@@ -189,6 +195,7 @@ class Application:
         :param frm: Frame principale de l'application
         :return: None
         """
+
 
         self.informations_utilisateur(frm)
 
