@@ -7,7 +7,7 @@ class Pokemon:
         self.generation : str = f"{generation}G" # Génération à laquelle le pokémon apparatient
         self.nom : str = nom # Nom du pokémon
         # Chemin du dossier qui contient les informations du pokémon
-        self.dossier : str = f"data/pokemons/{self.generation}/{self.id}_{self.nom}/"
+        self.dossier : str = f"data/pokemons/{self.id}_{self.nom}/"
         # Lecture du fichier json qui contient les données du pokémon
         with open(self.dossier + "data.json", "r") as pokemon_data:
             self.data = json.load(pokemon_data)
