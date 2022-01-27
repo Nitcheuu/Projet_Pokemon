@@ -18,7 +18,8 @@ class Application:
     hauteur : int
     save : dict     # Dictionaire qui contient les informations de la sauvegarde
     sprites : list[PhotoImage]
-
+    dimension : int # Dimension de la matrice qui modélise le pc
+    unlock_pokemons : list[list[list[str]]] # Modélise le pc
     """
     Zone constructeurs
     """
@@ -35,6 +36,7 @@ class Application:
         with open("data/save/save.json", "r") as save_data:
             self.save = json.load(save_data)
         self.sprites = []
+        self.dimension_pc = (3, 3)
     """
     Zone des méthodes
     """
@@ -62,11 +64,13 @@ class Application:
 
         return frm
 
-    def client(self):
+    def client(self, frm=None):
 
         """
         VA : Permet de gérer toutes les actions préalables au lancement d'une partie
         """
+        if frm is not None:
+            self.vider_frame(frm)
 
         # Définition du frame principale
         frm = Frame(self.principal, width=self.largeur, height=self.hauteur)
@@ -223,3 +227,5 @@ class Application:
 
                         ttk.Button(frm_equipe, text="Retirer", command=partial(print, str(i))
                                    ).grid(column=0, row=i)
+
+        ttk.Button(frm_equipe, text="Menu principal", command=lambda : self.client(frm)).grid(column=0, row=1)
