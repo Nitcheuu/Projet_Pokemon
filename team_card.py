@@ -12,21 +12,21 @@ class TeamCard:
     sprite : PhotoImage
     dossier : str
     frame : Frame
-    index : int
     textButton : str
     bouton : ttk.Button
 
 
 
-    def __init__(self, sprite : PhotoImage, dossier : str, frame : Frame, index : int, textButton : str):
-        self.sprite = sprite
+    def __init__(self, dossier : str, frame : Frame, textButton : str):
         self.dossier = dossier
+        self.sprite = PhotoImage(file=f"data/pokemons/{dossier}/front_default.png")
         self.frame = frame
-        self.index = index
         self.textButton = textButton
 
     
     def card(self):
+
+        print(self.frame)
 
         Label(self.frame, image=self.sprite).grid(column=3, row=0)
 

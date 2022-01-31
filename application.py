@@ -55,8 +55,7 @@ class Application:
         self.sprites = []
         self.poke_cards_liste = []
         self.poke_cards_equipe = []
-        self.poke_cards_liste_frame = []
-        self.poke_cards_equipe_frame = []
+
         self.dimension_pc = (3, 3)
 
         
@@ -196,6 +195,7 @@ class Application:
         :return: None
         """
 
+        frm = self.vider_frame(frm)
 
         self.informations_utilisateur(frm)
 
@@ -217,95 +217,69 @@ class Application:
 
 
     def equipe(self, frm : Frame):
+        # On vide dans un premier temps les listes qui contiennent les cartes
+        self.poke_cards_equipe = []
+        self.poke_cards_liste = []
+        # On vide le frame principal pour avoir un nouvel espace de travail
+        frm = self.vider_frame(frm)
+        # Définition du frame qui contiendra la liste des pokémons disponibles
+        frm_liste : Frame = Frame(frm)
+        frm_liste.grid(column=0, row=0)
+        # Définiton du frame qui contiendra la liste des pokémons de l'équipe du joueur
+        frm_equipe : Frame = Frame(frm)
+        frm_equipe.grid(column=1, row=0)
+        # Affichage de l'équipe du joueur
+        self.equipe_afficher_equipe(frm, frm_equipe)
+        self.equipe_afficher_liste(frm, frm_liste)
+        Button(frm_liste, text="Menu Principal", command=lambda: self.lobby(frm)).grid(column=0, row=0)
 
-        """
-        VA : Permet au joueur de gérer son équipe en affichant l'ensemble des éléments et des outils de la gestion
-             de l'équipe
-        :param frm: Frame princial de l'application
-        :return: None
-        """
-        # Vider le frame principal
-        frm_equipe_principal : Frame = self.vider_frame(frm)
+    def equipe_afficher_equipe(self, frm : Frame, frm_equipe : Frame):
+        # Variable qui contient l'équipe du joueur sous forme de liste
+        equipe : list[str] = self.save["player"]["team"]
+        # On parcourt chaque membre de l'équipe
+        for i in range(len(equipe)):
+            # Paramètrage du frame qui contiendra la carte du pokémon
+            frm_card: Frame = Frame(frm_equipe)
+            frm_card.grid(column=0, row=i)
+            # On stocke la carte dans une liste pour le garbage collector
+            self.poke_cards_equipe.append(TeamCard(equipe[i], frm_card, "Retirer"))
+            # Affichage de la carte à l'écran
+            self.poke_cards_equipe[i].card()
+            # Paramètrage de la commande du bouton
+            self.poke_cards_equipe[i].bouton.bind("<Button-1>", partial(self.equipe_swap_equipe_a_pc, i, frm))
 
-        # Frame de la liste des pokémons disponibles
-        frm_liste : Frame = Frame(frm_equipe_principal, background='#%02x%02x%02x' % (64, 204, 208))
-        frm_liste.grid(column=0, row=0, padx=50)
-
-        # Frame de l'équipe du joueur
-        frm_equipe : Frame = Frame(frm_equipe_principal, background='#%02x%02x%02x' % (64, 0, 208))
-        frm_equipe.grid(column=1, row=0, padx=50)
-
-        for i in range(len(self.save["player"]["unlock_pokemons"])):
-            """
-            Dans cette boucle, on défini les "cartes" des pokémons que le joueur a débloqué
-            """
-            frm_carte = Frame(frm_liste)
-            frm_carte.place(anchor=CENTER, rely=.5, relx=.5)
-            frm_carte.grid(column=0, row=i)
-            self.poke_cards_liste_frame.append(frm_carte)
-            # Chargement du sprite du pokémon
-            sprite : PhotoImage = PhotoImage(file=f'data/pokemons/{self.save["player"]["unlock_pokemons"][i]}/front_default.png')
-            # On instancie une nouvelle "carte" qu'on ajoute à la liste des cartes
-            self.poke_cards_liste.append(TeamCard(sprite, self.save["player"]["unlock_pokemons"][i], frm_carte, i, "Ajouter"))
-            # On appelle la méthode de la classe qui permet d'afficher la carte à l'écran pour chaque carte
+    def equipe_afficher_liste(self, frm : Frame, frm_liste : Frame):
+        # Variable qui contient la liste des pokémons débloqués par le joueur
+        liste : list[str] = self.save["player"]["unlocked_pokemons"]
+        # On parcourt chaque membre de l'équipe
+        for i in range(len(liste)):
+            # Paramètrage du frame qui contiendra la carte du pokémon
+            frm_card: Frame = Frame(frm_liste)
+            frm_card.grid(column=0, row=i)
+            # On stocke la carte dans une liste pour le garbage collector
+            self.poke_cards_liste.append(TeamCard(liste[i], frm_card, "Ajouter"))
+            # Affichage de la carte à l'écran
             self.poke_cards_liste[i].card()
+            # Paramètrage de la commande du bouton
+            self.poke_cards_liste[i].bouton.bind("<Button-1>", partial(self.equipe_swap_pc_a_equipe, i, frm))
 
-            self.poke_cards_liste[i].bouton.bind("<Button-1>", partial(print, i))
-
-        for i in range(len(self.save["player"]["team"])):
-            for dossier in self.dossiers:
-                if dossier == self.save["player"]["team"][i]:
-                    frm_carte = Frame(frm_equipe)
-                    frm_carte.place(anchor=CENTER, rely=.5, relx=.5)
-                    frm_carte.grid(column=0, row=i)
-                    self.poke_cards_equipe_frame.append(frm_carte)
-
-                    sprite : PhotoImage = PhotoImage(file=f"data/pokemons/{dossier}/front_default.png")
-
-                    self.poke_cards_equipe.append(TeamCard(sprite, dossier, frm_equipe, i, "Retirer"))
+    def equipe_swap_equipe_a_pc(self,  index : int, frame : Frame, team2Pc=True):
+        self.save["player"]["unlocked_pokemons"].append(
+            f"{self.poke_cards_equipe[index].dossier.split('_')[0]}_{self.poke_cards_equipe[index].dossier.split('_')[1]}")
+        self.poke_cards_liste.append(self.poke_cards_equipe[index])
+        self.poke_cards_equipe[index].destroy()
+        self.poke_cards_equipe.pop(index)
+        self.save["player"]["team"].pop(index)
+        self.sauvegarder()
+        self.equipe(frame)
 
 
-                    self.poke_cards_equipe[i].card()
-
-                    self.poke_cards_equipe[i].bouton.bind("<Button-1>", partial(self.swap, i, frm))
-                    """"# On ouvre et on stock les images dans un attribut de l'objet courant
-                    # à cause du garbage collector
-                    self.sprites.append(PhotoImage(file=f"data/pokemons/{dossier}/front_default.png"))
-                    # Création de la zone qui contiendra l'image
-                    Label(frm_equipe, image=self.sprites[-1]
-                          ).grid(column=3, row=i)
-
-                    ttk.Label(frm_equipe, text=dossier.split("_")[0]
-                              ).grid(column=1, row=i)
-
-                    ttk.Label(frm_equipe, text=dossier.split("_")[1]
-                              ).grid(column=2, row=i)
-=======
-        for i in range(len(self.save["player"]["team"])):
-            for dossier in self.dossiers:
-                for pokemon in self.save["player"]["team"]:
-                    if dossier == pokemon:
-                        # On ouvre et on stock les images dans un attribut de l'objet courant
-                        # à cause du garbage collector
-                        self.sprites.append(PhotoImage(file=f"data/pokemons/{dossier}/front_default.png"))
-                        # Création de la zone qui contiendra l'image
-                        Label(frm_equipe, image=self.sprites[-1]
-                              ).grid(column=3, row=i)
->>>>>>> fb467850e6b9bf474ef22e044f85cf872794fc08
-
-                    ttk.Button(frm_equipe, text="Retirer", command=partial(print, str(i))
-                               ).grid(column=0, row=i)"""
-
-        ttk.Button(frm_equipe, text="Menu principal", command=lambda : self.client(frm)).grid(column=0, row=len(self.poke_cards_equipe))
-
-
-    def swap(self, index : int, frm : Frame, team2pc = True):
-        if team2pc:
-            self.save["player"]["unlock_pokemons"].append(f"{self.poke_cards_equipe[index].dossier.split('_')[0]}_{self.poke_cards_equipe[index].dossier.split('_')[1]}")
-            self.poke_cards_liste.append(self.poke_cards_equipe[index])
-            self.poke_cards_equipe[index].destroy()
-            self.poke_cards_equipe.pop(index)
-            self.poke_cards_equipe_frame[index].destroy()
-            self.save["player"]["team"].pop(index)
-            self.sauvegarder()
-            self.equipe(frm)
+    def equipe_swap_pc_a_equipe(self,  index : int, frame : Frame, team2Pc=False):
+        self.save["player"]["team"].append(
+            f"{self.poke_cards_liste[index].dossier.split('_')[0]}_{self.poke_cards_liste[index].dossier.split('_')[1]}")
+        self.poke_cards_equipe.append(self.poke_cards_liste[index])
+        self.poke_cards_liste[index].destroy()
+        self.poke_cards_liste.pop(index)
+        self.save["player"]["unlocked_pokemons"].pop(index)
+        self.sauvegarder()
+        self.equipe(frame)
