@@ -7,7 +7,7 @@ from application import Application
 def main():
     test = Pokemon(1, 1, "bulbasaur", "default")
     move_test = Attaque('absorb')
-    app = Application(1280, 720)
+    app = Application(1280, 900)
     app.client()
 
 
